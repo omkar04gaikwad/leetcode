@@ -1361,3 +1361,248 @@ This cheatsheet covers a curated list of 75 LeetCode problems. For each problem,
             span += self.stack.pop()[1]
         self.stack.append((price, span))
         return span
+## 13. Roman to Integer
+Solved
+Easy
+Topics
+Companies
+Hint
+Roman numerals are represented by seven different symbols: I, V, X, L, C, D and M.
+
+Symbol       Value
+I             1
+V             5
+X             10
+L             50
+C             100
+D             500
+M             1000
+For example, 2 is written as II in Roman numeral, just two ones added together. 12 is written as XII, which is simply X + II. The number 27 is written as XXVII, which is XX + V + II.
+
+Roman numerals are usually written largest to smallest from left to right. However, the numeral for four is not IIII. Instead, the number four is written as IV. Because the one is before the five we subtract it making four. The same principle applies to the number nine, which is written as IX. There are six instances where subtraction is used:
+
+I can be placed before V (5) and X (10) to make 4 and 9. 
+X can be placed before L (50) and C (100) to make 40 and 90. 
+C can be placed before D (500) and M (1000) to make 400 and 900.
+Given a roman numeral, convert it to an integer.
+```python
+   def romanToInt(self, s):
+        """
+        :type s: str
+        :rtype: int
+        """
+        romantoint = {
+            'I':1,
+            'V':5,
+            'X':10,
+            'L':50,
+            'C':100,
+            'D':500,
+            'M':1000
+        }
+        prevA = 0
+        total = 0
+        for x in reversed(s):
+            val = romantoint[x]
+            if prevA > val:
+                total -= val
+            else:
+                total += val
+            prevA = val
+            print(prevA, total)
+        return total
+## 72. Edit Distance
+Solved
+Medium
+Topics
+Companies
+Given two strings word1 and word2, return the minimum number of operations required to convert word1 to word2.
+
+You have the following three operations permitted on a word:
+
+Insert a character
+Delete a character
+Replace a character
+ 
+
+Example 1:
+
+Input: word1 = "horse", word2 = "ros"
+Output: 3
+Explanation: 
+horse -> rorse (replace 'h' with 'r')
+rorse -> rose (remove 'r')
+rose -> ros (remove 'e')
+Example 2:
+
+Input: word1 = "intention", word2 = "execution"
+Output: 5
+Explanation: 
+intention -> inention (remove 't')
+inention -> enention (replace 'i' with 'e')
+enention -> exention (replace 'n' with 'x')
+exention -> exection (replace 'n' with 'c')
+exection -> execution (insert 'u')
+
+```python
+       def minDistance(self, word1, word2):
+        """
+        :type word1: str
+        :type word2: str
+        :rtype: int
+        """
+        m, n = len(word1), len(word2)
+        dp = [[0]*(n+1) for _ in range(m+1)]
+        for i in range(m+1):
+            dp[i][0] = i
+        for j in range(n+1):
+            dp[0][j] = j
+        for i in range(1, m+1):
+            for j in range(1, n+1):
+                if word1[i-1] == word2[j-1]:
+                    dp[i][j] = dp[i-1][j-1]
+                else:
+                    dp[i][j] = 1 + min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1])
+        return dp[m][n]
+## 12. Integer to Roman
+   Medium
+   Topics
+   Companies
+   Seven different symbols represent Roman numerals with the following values:
+   
+   Symbol	Value
+   I	1
+   V	5
+   X	10
+   L	50
+   C	100
+   D	500
+   M	1000
+   Roman numerals are formed by appending the conversions of decimal place values from highest to lowest. Converting a decimal place value into a Roman numeral has the following rules:
+   
+   If the value does not start with 4 or 9, select the symbol of the maximal value that can be subtracted from the input, append that symbol to the result, subtract its value, and convert the remainder to a Roman numeral.
+   If the value starts with 4 or 9 use the subtractive form representing one symbol subtracted from the following symbol, for example, 4 is 1 (I) less than 5 (V): IV and 9 is 1 (I) less than 10 (X): IX. Only the following subtractive forms are used: 4 (IV), 9 (IX), 40 (XL), 90 (XC), 400 (CD) and 900 (CM).
+   Only powers of 10 (I, X, C, M) can be appended consecutively at most 3 times to represent multiples of 10. You cannot append 5 (V), 50 (L), or 500 (D) multiple times. If you need to append a symbol 4 times use the subtractive form.
+   Given an integer, convert it to a Roman numeral.
+   
+    
+   
+   Example 1:
+   
+   Input: num = 3749
+   
+   Output: "MMMDCCXLIX"
+   
+   Explanation:
+   
+   3000 = MMM as 1000 (M) + 1000 (M) + 1000 (M)
+    700 = DCC as 500 (D) + 100 (C) + 100 (C)
+     40 = XL as 10 (X) less of 50 (L)
+      9 = IX as 1 (I) less of 10 (X)
+   Note: 49 is not 1 (I) less of 50 (L) because the conversion is based on decimal places
+   Example 2:
+   
+   Input: num = 58
+   
+   Output: "LVIII"
+   
+   Explanation:
+   
+   50 = L
+    8 = VIII
+   Example 3:
+   
+   Input: num = 1994
+   
+   Output: "MCMXCIV"
+   
+   Explanation:
+   
+   1000 = M
+    900 = CM
+     90 = XC
+      4 = IV
+   ```python
+      def intToRoman(self, num: int) -> str:
+           cs = ('M', 'CM', 'D', 'CD', 'C', 'XC', 'L', 'XL', 'X', 'IX', 'V', 'IV', 'I')
+           vs = (1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1)
+           ans = []
+           for c, v in zip(cs, vs):
+               while num >= v:
+                   num -= v
+                   ans.append(c)
+           return ''.join(ans)
+## 36. Valid Sudoku
+   Solved
+   Medium
+   Topics
+   Companies
+   Determine if a 9 x 9 Sudoku board is valid. Only the filled cells need to be validated according to the following rules:
+   
+   Each row must contain the digits 1-9 without repetition.
+   Each column must contain the digits 1-9 without repetition.
+   Each of the nine 3 x 3 sub-boxes of the grid must contain the digits 1-9 without repetition.
+   Note:
+   
+   A Sudoku board (partially filled) could be valid but is not necessarily solvable.
+   Only the filled cells need to be validated according to the mentioned rules.
+   ```python
+      def isValidSudoku(self, board: List[List[str]]) -> bool:
+           rows = [set() for _ in range(9)]
+           cols = [set() for _ in range(9)]
+           boxes = [set() for _ in range(9)]
+           for i in range(9):
+               for j in range(9):
+                   num = board[i][j]
+                   if num == ".":
+                       continue
+                   box_index = (i//3)*3 + (j//3)
+                   if num in rows[i] or num in cols[j] or num in boxes[box_index]:
+                       return False
+                   rows[i].add(num)
+                   cols[j].add(num)
+                   boxes[box_index].add(num)
+           return True
+
+## 37. Sudoku Solver
+   Hard
+   Topics
+   Companies
+   Write a program to solve a Sudoku puzzle by filling the empty cells.
+   
+   A sudoku solution must satisfy all of the following rules:
+   
+   Each of the digits 1-9 must occur exactly once in each row.
+   Each of the digits 1-9 must occur exactly once in each column.
+   Each of the digits 1-9 must occur exactly once in each of the 9 3x3 sub-boxes of the grid.
+   The '.' character indicates empty cells.
+   ```python
+      def solveSudoku(self, board: List[List[str]]) -> None:
+           def dfs(k):
+               nonlocal ok
+               if k == len(t):
+                   ok = True
+                   return
+               i, j = t[k]
+               for v in range(9):
+                   if row[i][v] == col[j][v] == block[i // 3][j // 3][v] == False:
+                       row[i][v] = col[j][v] = block[i // 3][j // 3][v] = True
+                       board[i][j] = str(v + 1)
+                       dfs(k + 1)
+                       row[i][v] = col[j][v] = block[i // 3][j // 3][v] = False
+                   if ok:
+                       return
+   
+           row = [[False] * 9 for _ in range(9)]
+           col = [[False] * 9 for _ in range(9)]
+           block = [[[False] * 9 for _ in range(3)] for _ in range(3)]
+           t = []
+           ok = False
+           for i in range(9):
+               for j in range(9):
+                   if board[i][j] == '.':
+                       t.append((i, j))
+                   else:
+                       v = int(board[i][j]) - 1
+                       row[i][v] = col[j][v] = block[i // 3][j // 3][v] = True
+           dfs(0)

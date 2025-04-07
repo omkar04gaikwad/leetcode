@@ -1,220 +1,345 @@
-
-# 🚀 BFS & DFS Patterns in Leetcode
-
-This guide helps you identify, classify, and solve graph-related problems using BFS and DFS with full pseudocode and decision logic.
+**Ultimate Guide to Solving Graph Problems with DFS and BFS**
 
 ---
 
-## 🧩 1. Reachability (Single Source)
-
-**🔍 Key Identifier**:  
-- “Can I reach all nodes from node 0?”
-- Input looks like a graph (adjacency list/matrix).
-- Usually only one DFS/BFS is needed.
-
-**✅ Use**:  
-DFS (iterative or recursive) or BFS  
-Only one traversal is needed from the source.
-
-**🧠 Examples**:  
-- Leetcode 841: Keys and Rooms  
-- Leetcode 1466: Reorder Routes  
-
-**📝 Pseudocode (DFS Stack)**:
-```
-stack = [start]
-visited = set()
-
-while stack:
-    node = stack.pop()
-    if node not in visited:
-        visited.add(node)
-        for neighbor in graph[node]:
-            if neighbor not in visited:
-                stack.append(neighbor)
-```
+## 🧠 Introduction
+Graph problems come in many flavors: pathfinding, cycle detection, connectivity, ordering, and optimization. Most of them boil down to using either **Depth-First Search (DFS)** or **Breadth-First Search (BFS)**. This document gives you a comprehensive and crystal-clear way to identify which algorithm to use, how to structure your code, and how to modify it based on specific problem constraints.
 
 ---
 
-## 🧩 2. Connected Components
+## 🔢 Identify Graph Problem Types
+Before choosing DFS or BFS, ask:
 
-**🔍 Key Identifier**:  
-- “How many groups/components?”
-- You must visit every node.
-- Graph is undirected or directed.
+1. **What is the goal?**
+   - All paths?
+   - Shortest path?
+   - Any valid path?
+   - Topological order?
+   - Use all edges once?
 
-**✅ Use**:  
-DFS or BFS in a loop  
-You must run DFS/BFS for each unvisited node and count.
+2. **What constraints exist?**
+   - Lexicographical order?
+   - Weighted/unweighted edges?
+   - Can nodes/edges be reused?
+   - Directed or undirected?
 
-**🧠 Examples**:  
-- Leetcode 547: Number of Provinces  
-- Leetcode 200: Number of Islands
+---
 
-**📝 Pseudocode**:
-```
-count = 0
+## 🧰 DFS: Depth-First Search
+Used when:
+- You want to explore all possibilities (backtracking)
+- You want post-order behavior (e.g., use all edges before adding to result)
+- You want to find cycles
+- You want all paths
+
+### 📚 DFS Recursion Template
+```python
 visited = set()
-
-for node in range(n):
-    if node not in visited:
-        dfs(node)
-        count += 1
-
-function dfs(node):
+def dfs(node):
     visited.add(node)
     for neighbor in graph[node]:
         if neighbor not in visited:
             dfs(neighbor)
 ```
 
----
+### 🔹 DFS with Path Tracking (All Paths)
+```python
+path = []
+result = []
 
-## 🧩 3. Shortest Path (Unweighted Graph)
-
-**🔍 Key Identifier**:  
-- “What’s the fewest steps?”
-- No weights on edges.
-- Grid or list-based traversal.
-
-**✅ Use**:  
-BFS (guarantees shortest path in unweighted graphs)
-
-**🧠 Examples**:  
-- Leetcode 752: Open the Lock  
-- Leetcode 1091: Shortest Path in Binary Matrix
-
-**📝 Pseudocode**:
-```
-queue = [(start, 0)]
-visited = set([start])
-
-while queue:
-    node, level = queue.pop(0)
-    if node == target:
-        return level
-    for neighbor in graph[node]:
-        if neighbor not in visited:
-            visited.add(neighbor)
-            queue.append((neighbor, level + 1))
+def dfs(node):
+    path.append(node)
+    if node == TARGET:
+        result.append(path[:])
+    else:
+        for neighbor in graph[node]:
+            dfs(neighbor)
+    path.pop()
 ```
 
----
+### 🔹 Post-order DFS (e.g., Leetcode 332 - Reconstruct Itinerary)
 
-## 🧩 4. Value Propagation / Evaluation
+In post-order DFS, you recursively visit all destinations before adding the current node to the result. This is especially useful when you need to construct an itinerary or topological order after consuming all outgoing edges.
 
-**🔍 Key Identifier**:  
-- “Find value through path traversal”
-- Path may not exist; return -1 if so
-- Graph is weighted
+Here’s the implementation:
+```python
+route = []
 
-**✅ Use**:  
-DFS with multiplication or tracking path value
-
-**🧠 Examples**:  
-- Leetcode 399: Evaluate Division
-
-**📝 Pseudocode**:
-```
-function dfs(curr, target, product):
-    if curr == target:
-        return product
-    visited.add(curr)
-    for neighbor, value in graph[curr]:
-        if neighbor not in visited:
-            result = dfs(neighbor, target, product * value)
-            if result != -1:
-                return result
-    return -1
+def dfs(node):
+    while graph[node]:
+        next_city = heapq.heappop(graph[node])
+        dfs(next_city)
+    route.append(node)  # post-order
 ```
 
----
-
-## 🧩 5. Cycle Detection
-
-**🔍 Key Identifier**:  
-- “Does the graph contain a cycle?”
-- DFS usually with tracking parents or recursion stack.
-
-**✅ Use**:  
-DFS with parent tracking (undirected), color states (directed)
-
-**🧠 Examples**:  
-- Leetcode 207: Course Schedule
-
-**📝 Pseudocode** (Directed - color based):
+**Visual Stack Unwinding Example**
+Imagine this graph:
 ```
-WHITE, GRAY, BLACK = 0, 1, 2
-color = {node: WHITE for node in graph}
+JFK -> ATL
+JFK -> SFO
+ATL -> LAX
+```
+DFS starts from JFK and goes deep:
+- dfs("JFK")
+  - dfs("ATL")
+    - dfs("LAX") → append "LAX"
+  → append "ATL"
+  - dfs("SFO") → append "SFO"
+→ append "JFK"
 
-function dfs(node):
-    if color[node] == GRAY:
-        return True  # cycle
-    if color[node] == BLACK:
-        return False
-    color[node] = GRAY
-    for neighbor in graph[node]:
-        if dfs(neighbor):
-            return True
-    color[node] = BLACK
-    return False
+So the stack unwinds in the reverse visiting order: `['LAX', 'ATL', 'SFO', 'JFK']`, and you return `[::-1]` to get the itinerary.
+```python
+route = []
+
+def dfs(node):
+    while graph[node]:
+        next_city = heapq.heappop(graph[node])
+        dfs(next_city)
+    route.append(node)  # post-order
 ```
 
----
-
-## 🧩 6. Topological Sorting
-
-**🔍 Key Identifier**:  
-- “What is the order to complete tasks?”
-- Graph is a DAG (Directed Acyclic Graph)
-
-**✅ Use**:  
-DFS postorder or BFS with in-degree (Kahn’s Algorithm)
-
-**🧠 Examples**:  
-- Leetcode 210: Course Schedule II
-
-**📝 Pseudocode (DFS version)**:
-```
+### 🔹 DFS Topological Sort
+```python
 visited = set()
 stack = []
 
-function dfs(node):
+def dfs(node):
     visited.add(node)
     for neighbor in graph[node]:
         if neighbor not in visited:
             dfs(neighbor)
-    stack.append(node)
+    stack.append(node)  # post-order
 
 for node in graph:
     if node not in visited:
         dfs(node)
 
-stack.reverse()  # Topological order
+stack.reverse()
 ```
 
 ---
 
-## ❗ Choosing Between DFS and BFS
+## 🌐 BFS: Breadth-First Search
+Used when:
+- You want the shortest path in **unweighted** graphs
+- You want level-by-level traversal
 
-| Problem Type                 | Use          | Reason                                 |
-|-----------------------------|--------------|----------------------------------------|
-| Reachability                | DFS/BFS      | One traversal from source              |
-| Count Components            | DFS/BFS loop | Multiple independent groups            |
-| Shortest Path (Unweighted)  | BFS          | Layered exploration gives shortest path|
-| All Paths / Backtracking    | DFS          | Explore all routes                     |
-| Topological Sort            | DFS/BFS      | Postorder or in-degree based           |
-| Evaluate Equations          | DFS          | Value propagation via traversal        |
-| Minimum Reorientation       | DFS/BFS      | Track original direction during visit  |
+**Visual Example: Level-wise Traversal**
+```
+Graph:
+    1
+   / \
+  2   3
+ /     \
+4       5
+
+Level 0: [1]
+Level 1: [2, 3]
+Level 2: [4, 5]
+```
+BFS explores level by level:
+- Visit node 1 → enqueue [2, 3]
+- Visit node 2 → enqueue [4]
+- Visit node 3 → enqueue [5]
+- Visit nodes 4 and 5 → done
+
+### 📚 BFS Template
+```python
+from collections import deque
+
+def bfs(start):
+    queue = deque([start])
+    visited = set([start])
+
+    while queue:
+        node = queue.popleft()
+        for neighbor in graph[node]:
+            if neighbor not in visited:
+                visited.add(neighbor)
+                queue.append(neighbor)
+```
+
+### 🔹 BFS for Shortest Path
+```python
+from collections import deque
+queue = deque([(start, [start])])
+visited = set([start])
+
+while queue:
+    node, path = queue.popleft()
+    if node == TARGET:
+        return path
+    for neighbor in graph[node]:
+        if neighbor not in visited:
+            visited.add(neighbor)
+            queue.append((neighbor, path + [neighbor]))
+```
+Used when:
+- You want the shortest path in **unweighted** graphs
+- You want level-by-level traversal
+
+### 📚 BFS Template
+```python
+from collections import deque
+
+def bfs(start):
+    queue = deque([start])
+    visited = set([start])
+
+    while queue:
+        node = queue.popleft()
+        for neighbor in graph[node]:
+            if neighbor not in visited:
+                visited.add(neighbor)
+                queue.append(neighbor)
+```
+
+### 🔹 BFS for Shortest Path
+```python
+from collections import deque
+queue = deque([(start, [start])])
+visited = set([start])
+
+while queue:
+    node, path = queue.popleft()
+    if node == TARGET:
+        return path
+    for neighbor in graph[node]:
+        if neighbor not in visited:
+            visited.add(neighbor)
+            queue.append((neighbor, path + [neighbor]))
+```
 
 ---
 
-## ✅ Final Notes
+## ⚖️ Choosing DFS vs BFS
+| Goal                     | Choose | Notes                                  |
+|--------------------------|--------|----------------------------------------|
+| Find **any path** A → B       | DFS    | Use recursion or iterative             |
+| Find **shortest path**   | BFS    | Unweighted graph                       |
+| **All paths**            | DFS    | Use path list + backtracking           |
+| **Topological sort**     | DFS    | Post-order traversal                   |
+| **Cycle detection**      | DFS    | Track recursion stack or visited set   |
+| **Use all edges once**   | DFS    | Eulerian path (Hierholzer's Algorithm) |
 
-- Always check:
-  - Directed vs Undirected?
-  - Weighted?
-  - Start from all or one node?
-  - Need path, count, or value?
-- Trace sample inputs manually to verify approach.
+---
+
+## 📈 DFS vs BFS Comparison Table
+
+| Feature           | DFS                      | BFS                      |
+|-------------------|---------------------------|---------------------------|
+| Space             | O(h) (h = height)         | O(w) (w = width)          |
+| Use Case          | Backtracking, Topo, All Paths | Shortest Path, Level Traversal |
+| Supports pruning  | Yes                       | Sometimes (visited early) |
+| Easy to go deep   | Yes                       | No                        |
+
+---
+
+### 🔄 Decision Tree for DFS vs BFS
+```
+          +----------------------------+
+          |      Problem Type          |
+          +----------------------------+
+                     |
+        +------------+-------------+
+        |                          |
+  Need shortest path?       Track full path?
+        |                          |
+      Yes                        Yes
+        |                          |
+      BFS                        DFS
+                                  |
+                    +-------------+-------------+
+                    |                           |
+     Is first valid path enough?     Need all combinations?
+                    |                           |
+                  Yes                         Yes
+                    |                           |
+        Return early with DFS         Explore all paths with DFS
+```
+| Feature           | DFS                      | BFS                      |
+|-------------------|---------------------------|---------------------------|
+| Space             | O(h) (h = height)         | O(w) (w = width)          |
+| Use Case          | Backtracking, Topo, All Paths | Shortest Path, Level Traversal |
+| Supports pruning  | Yes                       | Sometimes (visited early) |
+| Easy to go deep   | Yes                       | No                        |
+
+---
+
+## 🔁 Flowchart for DFS vs BFS Decision
+```
+Track full path?
+     |
+   Yes
+     |
+    DFS
+     |
+Best result = first solution found?
+     |             \
+   Yes             No
+     |               |
+ Return early   Explore all paths
+```
+
+---
+
+## 🧠 Pro Tips for Interviews
+- **"Use all tickets"** → Think post-order DFS (LeetCode 332)
+- **"Shortest path"** → Think BFS unless weights involved
+- **"All paths"** → Think DFS with backtracking
+- **"Lexical order"** → Sort or use `heapq` (priority queue)
+- **Weighted shortest** → Use Dijkstra (not DFS/BFS)
+- **Edge constraints** → Avoid visited set; remove edges when used
+
+---
+
+## 🔗 Graph Representation Tips
+- Use `defaultdict(list)` or `defaultdict(heapq)`
+- For undirected graphs: add both ways `graph[a].append(b)` and `graph[b].append(a)`
+- For weighted graphs: `graph[u].append((v, weight))`
+
+---
+
+## 🎡 Practice Problems
+
+**Visual Walkthrough: Leetcode 797 - All Paths from Source to Target**
+
+```
+Graph:
+0 -> 1 -> 3
+ \        ↑
+  -> 2 ----
+```
+DFS Traversal:
+- Start at node 0
+  - Go to 1 → Go to 3 → Path: [0,1,3]
+  - Backtrack
+  - Go to 2 → Go to 3 → Path: [0,2,3]
+
+Result:
+```
+[[0,1,3], [0,2,3]]
+```
+
+This shows backtracking in action as DFS explores all possible routes.
+
+| Problem                        | Type                 | Algorithm     |
+|-------------------------------|----------------------|---------------|
+| Leetcode 797                  | All paths            | DFS + path    |
+| Leetcode 332                  | Use all edges once   | Post-order DFS|
+| Leetcode 207 / 210            | Topo Sort            | DFS/BFS       |
+| Leetcode 200 / 547            | Connected Components | DFS/BFS       |
+| Leetcode 743                  | Weighted Shortest    | Dijkstra      |
+| Leetcode 133 / 417 / 994      | Multi-source BFS     | BFS           |
+
+---
+
+## 🔮 Final Mindset
+> "Graph problems test your ability to track state over time. DFS is surgical, BFS is systematic. Know when to go deep, and when to go wide."
+
+Practice recognizing the patterns. Build DFS/BFS muscle memory. You’ll go from confused to confident.
+
+---
+
+Let me know if you want a visual markdown version or quiz-based practice next!
 
